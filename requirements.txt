@@ -1,5 +1,4 @@
-streamlit
 torch
-torchaudio
-transformers
+transformers>=4.32.0
 soundfile
+streamlit
