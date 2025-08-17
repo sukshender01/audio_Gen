@@ -4,18 +4,18 @@ from transformers import pipeline
 import numpy as np
 from scipy.io.wavfile import write
 
-st.title("English to Japanese Speech Synthesizer 🎤")
-st.write("Enter English text to generate Japanese speech.")
+st.title("Japanese Speech Synthesizer 🎤")
+st.write("Enter Japanese text to generate speech.")
 
-text_input = st.text_area("Enter English Text:", height=150)
+text_input = st.text_area("Enter Japanese Text:", height=150)
 
-if st.button("Generate Japanese Speech"):
+if st.button("Generate Speech"):
     if not text_input.strip():
         st.error("Please enter some text.")
     else:
-        with st.spinner("Generating Japanese speech..."):
-            # Load lightweight Japanese TTS pipeline
-            tts = pipeline("text-to-speech", model="espnet/kan-bayashi_jvs_online_tts")
+        with st.spinner("Generating speech..."):
+            # Load the Japanese TTS pipeline
+            tts = pipeline("text-to-speech", model="espnet/kan-bayashi_jsut_tts_train_fastspeech_raw_phn_jaconv_pyopenjtalk_train.loss.best")
 
             # Generate audio
             audio_array, sampling_rate = tts(text_input)
@@ -32,7 +32,7 @@ if st.button("Generate Japanese Speech"):
             with open(transcript_file, "w", encoding="utf-8") as f:
                 f.write(text_input)
 
-        st.success("Japanese speech generated successfully ✅")
+        st.success("Speech generated successfully ✅")
 
         # Audio player
         st.audio(audio_file, format="audio/wav")
