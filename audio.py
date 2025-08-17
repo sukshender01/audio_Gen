@@ -1,29 +1,38 @@
+# app.py
 import streamlit as st
-from TTS.api import TTS
 import os
+import soundfile as sf
+
+# Try importing TTS; provide clear error if not installed
+try:
+    from TTS.api import TTS
+except ImportError:
+    st.error("TTS library is not installed. Add 'TTS' to requirements.txt.")
+    st.stop()
 
 # ----------------------------
 # Streamlit UI
 # ----------------------------
 st.title("English to Japanese Speech Synthesizer 🎤")
-st.write("Enter English text below, and generate Japanese speech with downloadable files.")
+st.write("Enter English text below and generate Japanese speech with downloadable files.")
 
 # Text input
 english_text = st.text_area("Enter English Text:", height=150)
 
-# Generate button
+# Generate speech on button click
 if st.button("Generate Japanese Speech"):
     if not english_text.strip():
         st.error("Please enter some text to generate speech.")
     else:
         with st.spinner("Generating Japanese speech..."):
-            # Initialize TTS
-            tts_model_name = "espnet/kan-bayashi_ljspeech_vits"  # Japanese TTS model
-            tts = TTS(model_name=tts_model_name, progress_bar=False, gpu=False)
+            # Initialize TTS model
+            # Use a multilingual or Japanese TTS model available in TTS library
+            tts_model_name = "tts_models/multilingual/multi-dataset/tacotron2-DDC"  
+            tts = TTS(tts_model_name)
 
-            # Generate audio file
+            # Output audio file
             audio_file = "japanese_speech.wav"
-            tts.tts_to_file(text=english_text, file_path=audio_file)
+            tts.tts_to_file(text=english_text, file_path=audio_file, language="ja")
 
             # Save transcript
             transcript_file = "transcript.txt"
@@ -50,6 +59,6 @@ if st.button("Generate Japanese Speech"):
             mime="text/plain"
         )
 
-        # Optional: Clean up files after download
+        # Optional: Clean up after download
         # os.remove(audio_file)
         # os.remove(transcript_file)
