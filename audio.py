@@ -1,31 +1,25 @@
 # app.py
 import streamlit as st
-from transformers import pipeline
-import numpy as np
-from scipy.io.wavfile import write
+from TTS.api import TTS
+import soundfile as sf
 
 st.title("Japanese Speech Synthesizer 🎤")
-st.write("Enter Japanese text to generate speech.")
+st.write("Enter English text to generate Japanese speech.")
 
-text_input = st.text_area("Enter Japanese Text:", height=150)
+# Text input
+text_input = st.text_area("Enter text:", height=150)
 
 if st.button("Generate Speech"):
     if not text_input.strip():
         st.error("Please enter some text.")
     else:
         with st.spinner("Generating speech..."):
-            # Load the Japanese TTS pipeline
-            tts = pipeline("text-to-speech", model="espnet/kan-bayashi_jsut_tts_train_fastspeech_raw_phn_jaconv_pyopenjtalk_train.loss.best")
+            # Load Japanese TTS model
+            tts = TTS(model_name="tts_models/ja/kokoro/tacotron2")
 
             # Generate audio
-            audio_array, sampling_rate = tts(text_input)
-
-            # Convert float32 [-1,1] to int16 for WAV
-            audio_int16 = np.int16(audio_array * 32767)
-
-            # Save audio
             audio_file = "japanese_speech.wav"
-            write(audio_file, sampling_rate, audio_int16)
+            tts.tts_to_file(text=text_input, file_path=audio_file)
 
             # Save transcript
             transcript_file = "transcript.txt"
@@ -34,8 +28,8 @@ if st.button("Generate Speech"):
 
         st.success("Speech generated successfully ✅")
 
-        # Audio player
-        st.audio(audio_file, format="audio/wav")
+        # Play audio
+        st.audio(audio_file)
 
         # Download buttons
         st.download_button("Download Audio", data=open(audio_file, "rb").read(), file_name=audio_file, mime="audio/wav")
