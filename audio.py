@@ -1,43 +1,29 @@
 import streamlit as st
-import torch
-from transformers import AutoProcessor, AutoModelForTextToSpeech
-import soundfile as sf
+from TTS.api import TTS
+import os
 
 # ----------------------------
-# Streamlit UI Setup
+# Streamlit UI
 # ----------------------------
-st.title("English → Japanese Speech Synthesizer 🎤")
-st.write("Enter English text below to generate Japanese speech with downloadable files.")
+st.title("English to Japanese Speech Synthesizer 🎤")
+st.write("Enter English text below, and generate Japanese speech with downloadable files.")
 
+# Text input
 english_text = st.text_area("Enter English Text:", height=150)
 
-# Button to trigger TTS
+# Generate button
 if st.button("Generate Japanese Speech"):
     if not english_text.strip():
         st.error("Please enter some text to generate speech.")
     else:
         with st.spinner("Generating Japanese speech..."):
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            # Initialize TTS
+            tts_model_name = "espnet/kan-bayashi_ljspeech_vits"  # Japanese TTS model
+            tts = TTS(model_name=tts_model_name, progress_bar=False, gpu=False)
 
-            # Load TTS model and processor
-            model_name = "espnet/kan-bayashi_ljspeech_vits"
-            # Example Japanese TTS model; replace with a Japanese-specific TTS if available
-            processor = AutoProcessor.from_pretrained(model_name)
-            model = AutoModelForTextToSpeech.from_pretrained(model_name).to(device)
-
-            # Tokenize input
-            inputs = processor(text=english_text, return_tensors="pt").to(device)
-
-            # Generate speech
-            with torch.no_grad():
-                speech = model.generate(**inputs)
-
-            # Convert tensor to numpy
-            speech_audio = speech.squeeze().cpu().numpy()
-
-            # Save audio
+            # Generate audio file
             audio_file = "japanese_speech.wav"
-            sf.write(audio_file, speech_audio, samplerate=22050)
+            tts.tts_to_file(text=english_text, file_path=audio_file)
 
             # Save transcript
             transcript_file = "transcript.txt"
@@ -45,6 +31,8 @@ if st.button("Generate Japanese Speech"):
                 f.write(english_text)
 
         st.success("Japanese speech generated successfully! ✅")
+
+        # Show audio player
         st.audio(audio_file, format="audio/wav")
 
         # Download buttons
@@ -54,9 +42,14 @@ if st.button("Generate Japanese Speech"):
             file_name=audio_file,
             mime="audio/wav"
         )
+
         st.download_button(
             label="Download Transcript",
             data=open(transcript_file, "r", encoding="utf-8").read(),
             file_name=transcript_file,
             mime="text/plain"
         )
+
+        # Optional: Clean up files after download
+        # os.remove(audio_file)
+        # os.remove(transcript_file)
